@@ -23,15 +23,14 @@
     hadoop fs 查看命令</br>
     hadoop fs -help xxx(查看帮助文档)</br>
     ls 遍历文件	mkdir 创建文件	cp 复制...</br>
+
 # 3.NameNode 体系结构</br>
   * 是整个文件系统的管理节点。它维护着整个文件系统的文件目录树，文件/目录的元信息和每个文件对应的数据块列表。接收用户的操作请求 </br>
- (文件目录树 为了检索速度快，最好放在内存中，为了持久保存，则写入硬盘中)</br>
- (元信息：除了文件内容本身的，涉及文件的信息，比如大小，权限...  ls 列出的信息都是元数据信息)</br>
- (归根结底在硬盘上，但运行时在内存)</br>
- (hdfs-default.xml 源码文件，eclipse中打开，可以查看存放位置: </br>
+ (文件目录树 为了检索速度快，最好放在内存中，为了持久保存，则写入硬盘中; 元信息：除了文件内容本身的，涉及文件的信息，比如大小，权限...  ls 列出的信息都是元数据信息; 归根结底在硬盘上，但运行时在内存 )</br>
+  * hdfs-default.xml 源码文件，eclipse中打开，可以查看存放位置: </br>
  <b><name>hadoop.tmp.dir</name></b></br>
  <b><value>/usr/local/hadoop/tmp</value></b></br>
-  (在hadoop 系统中也可以查看，</br>
+  * 在hadoop 系统中也可以查看，</br>
     <b>#cd /usr/local/hadoop/tmp </b></br>
     <b># ls </b>( 可以看到 dfs mapred 目录)</br>
     <b># cd dfs </b></br>
@@ -40,8 +39,9 @@
     <b># more in_use.lock </b>( 没有什么内容，这个文件表示 name 目录已经被 namenode 进程占用了，那么在此启动 namenode 的时候，进程会报错，无法进入)</br>
     <b># cd current  </b></br>
     <b># ls </b>( 这些是namenode存储数据的文件，如果多个进程同时编辑数据会有问题，所以只能允许一个 namenode 存在，所以 in_use.lock  存在，锁定，其他 namenode 进程无法进入)</br>
+    
     文件包括：</br>
-    * fsimage：(核心文件) 元数据镜像文件。存储某一时段NameNode内存元数据信息(hdfs-site.xml 的 dfs.name.dir 属性)，为了保障安全行，会进行备份，hdfs-default.xml中 </br>
+   * fsimage：(核心文件) 元数据镜像文件。存储某一时段NameNode内存元数据信息(hdfs-site.xml 的 dfs.name.dir 属性)，为了保障安全行，会进行备份，hdfs-default.xml中 </br>
     <b><name>dfs.name.dir</name></b></br>
     <b><value>${hadoop.tmp.dir}/dfs/name</value></b></br>
     不可以直接在文件上修改，复制到 hdfs-site.xml 中，将 <b><value>${hadoop.tmp.dir}/dfs/name</value></b> 改为用<b> "," </b>分割的目录列表(逗号为英文状态，且不加空格)，数据会同时存到多个目录下(最好是多台机器多个磁盘上的多个文件夹，越分散越好)</br>
@@ -54,8 +54,8 @@
 		以上这些文件是保存在 linux 的文件系统中</br>
   
  <b>SecondaryNameNode</b></br>
-     * HA的一个解决方案，但不支持热备，配置即可(见源码)</br>
-     * 执行过程：从 NameNode 上下载元数据信息(fsimage.edits)，然后把二者合并，生成新的 fsimage，在本地保存，并将其推送到 NameNode ，同时重置 NameNode 的 edits</br>
-     * 默认在安装在 NameNode 节点上，但是不安全</br>    
+    * HA的一个解决方案，但不支持热备，配置即可(见源码)</br>
+    * 执行过程：从 NameNode 上下载元数据信息(fsimage.edits)，然后把二者合并，生成新的 fsimage，在本地保存，并将其推送到 NameNode ，同时重置 NameNode 的 edits</br>
+    * 默认在安装在 NameNode 节点上，但是不安全</br>    
     
 		
