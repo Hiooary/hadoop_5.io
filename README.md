@@ -23,4 +23,40 @@
     hadoop fs 查看命令</br>
     hadoop fs -help xxx(查看帮助文档)</br>
     ls 遍历文件	mkdir 创建文件	cp 复制...</br>
+# 3.NameNode 体系结构
+  * 是整个文件系统的管理节点。它维护着整个文件系统的文件目录树，文件/目录的元信息和每个文件对应的数据块列表。接收用户的操作请求 </br>
+ (文件目录树 为了检索速度快，最好放在内存中，为了持久保存，则写入硬盘中)
+ (元信息：除了文件内容本身的，涉及文件的信息，比如大小，权限...  ls 列出的信息都是元数据信息)
+ (归根结底在硬盘上，但运行时在内存)
+ (hdfs-default.xml 源码文件，eclipse中打开，可以查看存放位置 
+ <b><name>hadoop.tmp.dir</name>
+    <value>/usr/local/hadoop/tmp</value></b>
+  (在hadoop 系统中也可以查看，
+    <b>#cd /usr/local/hadoop/tmp </b>
+    <b># ls </b>( 可以看到 dfs mapred 目录)
+    <b># cd dfs </b>
+    <b># ls </b>( 可以看到 data name namesecondary 目录)
+    <b># cd name </b> ( 可以看到一些文件，其中有 in_use.lock)
+    <b># more in_use.lock </b>( 没有什么内容，这个文件表示 name 目录已经被 namenode 进程占用了，那么在此启动 namenode 的时候，进程会报错，无法进入)
+    <b># cd current  </b>
+    <b># ls </b>( 这些是namenode存储数据的文件，如果多个进程同时编辑数据会有问题，所以只能允许一个 namenode 存在，所以 in_use.lock  存在，锁定，其他 namenode 进程无法进入)
+    文件包括：
+    * fsimage：(核心文件) 元数据镜像文件。存储某一时段NameNode内存元数据信息(hdfs-site.xml 的 dfs.name.dir 属性)，为了保障安全行，会进行备份，hdfs-default.xml中 
+    <b><name>dfs.name.dir</name>	
+    <value>${hadoop.tmp.dir}/dfs/name</value></b>
+    不可以直接在文件上修改，复制到 hdfs-site.xml 中，将
+    <b><value>${hadoop.tmp.dir}/dfs/name</value></b> 改为用<b> "," </b>分割的目录列表(逗号为英文状态，且不加空格)，数据会同时存到多个目录下(最好是多台机器多个磁盘上的多个文件夹，越分散越好)
+    * edits：操作日志文件
+      存放位置：
+      <b><name>dfs.name.edits.dir</name>
+         <value>${dfs.name.dir}</value>  </b>
+      事务文件(表示原子性操作，比如存取钱，如果其中一个操作失败，那么账不平，所以要么全部成功，要么全部失败)，假设从本地上传 1G 的文件到 hdfs，耗时10s，上传过程中网络中断或者源数据被删导致上传失败，这时 hdfs 上的部分文件是不完整的，不应该显示给用户。那么怎么保证这种一致性? -> 先写入 edits，上传100M,上传200M,...,保存上传的事务过程，如果失败，则不会告诉 fsimage(通过 SecondaryNamenode 进程)。NameNode 要接管用户的操作请求，要求快速响应，数据放入内存才快，cpu也尽量满足用户需求，所以交给第三方进程去合并
+     * fstime：保存最近一次 checkpoint 的时间
+		以上这些文件是保存在 linux 的文件系统中
+  
+ <b>SecondaryNameNode</b>
+     * HA的一个解决方案，但不支持热备，配置即可(见源码)
+     * 执行过程：从 NameNode 上下载元数据信息(fsimage.edits)，然后把二者合并，生成新的 fsimage，在本地保存，并将其推送到 NameNode ，同时重置 NameNode 的 edits
+     * 默认在安装在 NameNode 节点上，但是不安全    
+    
 		
