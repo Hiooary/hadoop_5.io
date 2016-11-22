@@ -77,6 +77,7 @@
      <b># cd /usr/local/hadoop/tmp/dfs/data/current </b></br> 
      <b># ls  ( 可以看到 Block 块 )</b></br> 
      <b># ll  ( 会有 .meta 文件(校验数据，与数据文件成对) )</b></br> 
-     <b># hadoop fs -rmr hdfs://hadoop0:9000/*  </b> (*表示通配) 删除所有的数据；再开启一个终端，用于上传(之前的那个终端用于显示)，上传占用实际文件大小空间，不足 64MB 只会占用一个块；文件超过 64MB ，会分块，几块加起来大小与原始文件一样，# cd /usr/local # ll 可以看到一些文件 </br>
+     <b># hadoop fs -rmr hdfs://hadoop0:9000/*  </b> (*表示通配) 删除所有的数据；再开启一个终端，用于上传(之前的那个终端用于显示)，上传占用实际文件大小空间，不足 64MB 只会占用一个块；文件超过 64MB ，会分块，几块加起来大小与原始文件一样</br>
+     <b># cd /usr/local # ll 可以看到一些文件 </b></br>
      <b># hadoop fs -put xxx(文件) /</b> (上传到根目录)，上传完了去另一个终端查看，可以看到块，大小与上传之前的大小一样，手工上传的数据：不同的服务器上传，麻烦； 而且 hadoop fs -ls / 查询不到，因为 NameNode 管理目录树，它不知道，hdfs是不认的 </br>
     * 根据实际情况，确定 Block 的大小，复制 <b><name>dfs.block.size</name> <value>67108864</value></b> 到 hdfs-site.xml 文件中修改 大小 </br>
