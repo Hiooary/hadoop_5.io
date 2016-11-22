@@ -8,7 +8,7 @@
 # 2. HDFS的shell操作</br>
   * (开启虚拟机，打开终端，验证hadoop程序是否运行：jps (出现5个java进程))</br>
 	   对hdfs的操作方式：<b> hadoop fs -xxx </b> </br>
-		* <b>例如：</b> hadoop fs -ls / 看根目录下的内容	hadoop fs -lsr / 递归看根目录下的内容 </br>
+       <b>例如：</b> hadoop fs -ls / 看根目录下的内容	hadoop fs -lsr / 递归看根目录下的内容 </br>
 	   注意：这个命令查的是 hdfs 的目录， # ls 才是查看 linux 的目录 </br>
 	 * 常用命令： hadoop fs -mkdir /d1 在 hdfs 下创建文件夹</br>
        mkdir /dl  在 linux 下创建文件	</br>
