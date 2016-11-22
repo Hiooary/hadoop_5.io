@@ -50,12 +50,12 @@
       <b><name>dfs.name.edits.dir</name></b></br>
       <b><value>${dfs.name.dir}</value>  </b></br>
       事务文件(表示原子性操作，比如存取钱，如果其中一个操作失败，那么账不平，所以要么全部成功，要么全部失败)，假设从本地上传 1G 的文件到 hdfs，耗时10s，上传过程中网络中断或者源数据被删导致上传失败，这时 hdfs 上的部分文件是不完整的，不应该显示给用户。那么怎么保证这种一致性? -> 先写入 edits，上传100M,上传200M,...,保存上传的事务过程，如果失败，则不会告诉 fsimage(通过 SecondaryNamenode 进程)。NameNode 要接管用户的操作请求，要求快速响应，数据放入内存才快，cpu也尽量满足用户需求，所以交给第三方进程去合并</br>
-     * fstime：保存最近一次 checkpoint 的时间</br>
+    * fstime：保存最近一次 checkpoint 的时间</br>
 		以上这些文件是保存在 linux 的文件系统中</br>
   
  <b>SecondaryNameNode</b></br>
-    * HA的一个解决方案，但不支持热备，配置即可(见源码)</br>
-    * 执行过程：从 NameNode 上下载元数据信息(fsimage.edits)，然后把二者合并，生成新的 fsimage，在本地保存，并将其推送到 NameNode ，同时重置 NameNode 的 edits</br>
-    * 默认在安装在 NameNode 节点上，但是不安全</br>    
+  * HA的一个解决方案，但不支持热备，配置即可(见源码)</br>
+  * 执行过程：从 NameNode 上下载元数据信息(fsimage.edits)，然后把二者合并，生成新的 fsimage，在本地保存，并将其推送到 NameNode ，同时重置 NameNode 的 edits</br>
+  * 默认在安装在 NameNode 节点上，但是不安全</br>    
     
 		
