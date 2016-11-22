@@ -26,12 +26,12 @@
 
 # 3.NameNode 体系结构</br>
   * 是整个文件系统的管理节点。它维护着整个文件系统的文件目录树，文件/目录的元信息和每个文件对应的数据块列表。接收用户的操作请求 </br>
- (文件目录树 为了检索速度快，最好放在内存中，为了持久保存，则写入硬盘中; 元信息：除了文件内容本身的，涉及文件的信息，比如大小，权限...  ls 列出的信息都是元数据信息; 归根结底在硬盘上，但运行时在内存 )</br>
+ (文件目录树： 为了检索速度快，最好放在内存中，为了持久保存，则写入硬盘中;  元信息： 除了文件内容本身的，涉及文件的信息，比如大小，权限...  ls 列出的信息都是元数据信息;  归根结底在硬盘上，但运行时在内存 )</br>
   * hdfs-default.xml 源码文件，eclipse中打开，可以查看存放位置: </br>
  <b><name>hadoop.tmp.dir</name></b></br>
  <b><value>/usr/local/hadoop/tmp</value></b></br>
   * 在hadoop 系统中也可以查看，</br>
-    <b>#cd /usr/local/hadoop/tmp </b></br>
+    <b># cd /usr/local/hadoop/tmp </b></br>
     <b># ls </b>( 可以看到 dfs mapred 目录)</br>
     <b># cd dfs </b></br>
     <b># ls </b>( 可以看到 data name namesecondary 目录)</br>
@@ -54,8 +54,29 @@
 		以上这些文件是保存在 linux 的文件系统中</br>
   
  <b>SecondaryNameNode</b></br>
-  * HA的一个解决方案，但不支持热备，配置即可(见源码)</br>
-  * 执行过程：从 NameNode 上下载元数据信息(fsimage.edits)，然后把二者合并，生成新的 fsimage，在本地保存，并将其推送到 NameNode ，同时重置 NameNode 的 edits</br>
-  * 默认在安装在 NameNode 节点上，但是不安全</br>    
-    
-		
+   * HA的一个解决方案，但不支持热备，配置即可(见源码)</br>
+   * 执行过程：从 NameNode 上下载元数据信息(fsimage.edits)，然后把二者合并，生成新的 fsimage，在本地保存，并将其推送到 NameNode ，同时重置 NameNode 的 edits</br>
+   * 默认在安装在 NameNode 节点上，但是不安全</br>    
+   
+# 4.DataNode 体系结构</br>
+   * 提供真实文件数据的存储服务</br>
+		# 文件块(block)：最基本的存储单位。对于文件内容而言，一个文件的长度大小是size，那么从文件的 0 偏移开始，按照固定的大小，顺序对文件进行划分并编号，划分好的每一个块称一个 Block，HDFS 默认 Block 大小是 64MB，以一个 256MB 文件为例，共有256/64=4 个 Block </br>
+		# 不同于普通文件系统的是，HDFS中，如果一个文件小于一个数据块的大小，并不占用整个数据块存储空间 </br>
+		# Replication，多副本，默认是三个 (数据安全；副本越多会占用磁盘空间，所以根据实际情况定；默认三个，在配置文件中配置；目录没有副本，只有文件才有副本 </br>
+    * 设置副本： <b> # cd hadoop/conf </b></br>
+         <b> # more hdfs-site.xml</b></br>
+      可以看到 <b><name>dfs.replication</name></b> </br>
+         <b><value>1</value></b> </br>
+      这里设置的个数为1，没写则默认为3，这里做实验，就一个DataNode，所以设置为1。三个副本一般存在三个机器上：分别存放在 就近放在最近机架上的电脑上(确定)，同一机架上的另一台电脑(随机)，另一机架的另一台电脑(随机))</br>
+    * NameNode 主节点只有一个，作为存储数据的 DataNode 有很多个，hdfs 可以存储海量数据，实际上指的是 DataNode 节点的快速扩展。真实的数据存储在 DataNode 中，对于目录的结构信息，元数据信息存储在 NameNode 中。</br>
+    * Block 是 linux 文件系统划分的一个概念 (形同 windows 的簇的概念，太大容易造成浪费，太小会导致频繁的IO操作，慢)，真正的文件是流，单向的，一个字节一个字节的数，数到64MB，则划分一个Block，一个大文件就会按照 64MB 划分为很多的 Block，NameNode 把 Block 存放于不同的 DataNode 上</br>
+      (例如：一个文件 65MB ,会产生 2 个 Block，分别为 64MB,1MB，一个文件 2M，会产生 1 个 Block，占 2M 磁盘空间，2 个2M 的文件，产生 2 个 Block，占 4M)</br>
+    *  源码中：<b><name>dfs.data.dir</name></b></br> 
+       <b><value>${hadoop.tmp.dir}/dfs/data</value></b></br> 
+      存放 Block 的路径: 
+     <b># cd /usr/local/hadoop/tmp/dfs/data/current </b></br> 
+     <b># ls  ( 可以看到 Block 块 )</b></br> 
+     <b># ll  ( 会有 .meta 文件(校验数据，与数据文件成对) )</b></br> 
+     <b># hadoop fs -rmr hdfs://hadoop0:9000/*  </b> (*表示通配) 删除所有的数据；再开启一个终端，用于上传(之前的那个终端用于显示)，上传占用实际文件大小空间，不足 64MB 只会占用一个块；文件超过 64MB ，会分块，几块加起来大小与原始文件一样，# cd /usr/local # ll 可以看到一些文件 </br>
+     <b># hadoop fs -put xxx(文件) /</b> (上传到根目录)，上传完了去另一个终端查看，可以看到块，大小与上传之前的大小一样，手工上传的数据：不同的服务器上传，麻烦； 而且 hadoop fs -ls / 查询不到，因为 NameNode 管理目录树，它不知道，hdfs是不认的 </br>
+    * 根据实际情况，确定 Block 的大小，复制 <b><name>dfs.block.size</name> <value>67108864</value></b> 到 hdfs-site.xml 文件中修改 大小 </br>
