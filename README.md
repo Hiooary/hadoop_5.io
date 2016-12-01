@@ -23,6 +23,8 @@
     hadoop fs 查看命令</br>
     hadoop fs -help xxx(查看帮助文档)</br>
     ls 遍历文件	mkdir 创建文件	cp 复制...</br>
+    ![图片](https://github.com/Hiooary/hadoop_4.io/blob/master/images/1.PNG)
+    ![图片](https://github.com/Hiooary/hadoop_4.io/blob/master/images/2.PNG)
 
 # 3.NameNode 体系结构</br>
   * 是整个文件系统的管理节点。它维护着整个文件系统的文件目录树，文件/目录的元信息和每个文件对应的数据块列表。接收用户的操作请求 </br>
