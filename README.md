@@ -30,7 +30,7 @@
   * 是整个文件系统的管理节点。它维护着整个文件系统的文件目录树，文件/目录的元信息和每个文件对应的数据块列表。接收用户的操作请求 </br>
  (文件目录树： 为了检索速度快，最好放在内存中，为了持久保存，则写入硬盘中;  元信息： 除了文件内容本身的，涉及文件的信息，比如大小，权限...  ls 列出的信息都是元数据信息;  归根结底在硬盘上，但运行时在内存 )</br>
   * hdfs-default.xml 源码文件，eclipse中打开，可以查看存放位置: </br>
- <b><name>hadoop.tmp.dir</name></b></br>
+ <b>/\</name>hadoop.tmp.dir/\<//name></b></br>
  <b><value>/usr/local/hadoop/tmp</value></b></br>
   * 在hadoop 系统中也可以查看，</br>
     <b># cd /usr/local/hadoop/tmp </b></br>
