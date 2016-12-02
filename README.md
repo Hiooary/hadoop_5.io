@@ -46,7 +46,7 @@
    * fsimage：(核心文件) 元数据镜像文件。存储某一时段NameNode内存元数据信息(hdfs-site.xml 的 dfs.name.dir 属性)，为了保障安全行，会进行备份，hdfs-default.xml中 </br>
     <b>\<name>dfs.name.dir\</name></b></br>
     <b>\<value>${hadoop.tmp.dir}/dfs/name\</value></b></br>
-    不可以直接在文件上修改，复制到 hdfs-site.xml 中，将 <b><value>${hadoop.tmp.dir}/dfs/name</value></b> 改为用<b> "," </b>分割的目录列表(逗号为英文状态，且不加空格)，数据会同时存到多个目录下(最好是多台机器多个磁盘上的多个文件夹，越分散越好)</br>
+    不可以直接在文件上修改，复制到 hdfs-site.xml 中，将 <b>\<value>${hadoop.tmp.dir}/dfs/name\</value></b> 改为用<b> "," </b>分割的目录列表(逗号为英文状态，且不加空格)，数据会同时存到多个目录下(最好是多台机器多个磁盘上的多个文件夹，越分散越好)</br>
     * edits：操作日志文件</br>
       存放位置：</br>
       <b>\<name>dfs.name.edits.dir\</name></b></br>
