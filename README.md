@@ -66,20 +66,20 @@
 	# 不同于普通文件系统的是，HDFS中，如果一个文件小于一个数据块的大小，并不占用整个数据块存储空间 </br>
 	# Replication，多副本，默认是三个 (数据安全；副本越多会占用磁盘空间，所以根据实际情况定；默认三个，在配置文件中配置；目录没有副本，只有文件才有副本 </br>
   * 设置副本：                                                                                                       
-       <b> # cd hadoop/conf </b></br>                                                      
+       <b> # cd hadoop/conf </b></br>
        <b> # more hdfs-site.xml</b></br>                                                                    
       可以看到                                                                                                       
-       <b> \<name>dfs.replication\</name></b> </br>                
+       <b> \<name>dfs.replication\</name></b> </br>
        <b>\<value>1\</value></b> </br>
       这里设置的个数为1，没写则默认为3，这里做实验，就一个DataNode，所以设置为1。三个副本一般存在三个机器上：分别存放在 就近放在最近机架上的电脑上(确定)，同一机架上的另一台电脑(随机)，另一机架的另一台电脑(随机))</br>
   * NameNode 主节点只有一个，作为存储数据的 DataNode 有很多个，hdfs 可以存储海量数据，实际上指的是 DataNode 节点的快速扩展。真实的数据存储在 DataNode 中，对于目录的结构信息，元数据信息存储在 NameNode 中 。</br>
   * Block 是 linux 文件系统划分的一个概念 (形同 windows 的簇的概念，太大容易造成浪费，太小会导致频繁的IO操作，慢)，真正的文件是流，单向的，一个字节一个字节的数，数到64MB，则划分一个Block，一个大文件就会按照 64MB 划分为很多的 Block，NameNode 把 Block 存放于不同的 DataNode 上</br>
       (例如：一个文件 65MB ,会产生 2 个 Block，分别为 64MB,1MB，一个文件 2M，会产生 1 个 Block，占 2M 磁盘空间，2 个2M 的文件，产生 2 个 Block，占 4M)</br>
   *  源码中：                                                                                                       
-     <b>\<name>dfs.data.dir\</name></b></br>      
+     <b>\<name>dfs.data.dir\</name></b></br>
      <b>\<value>${hadoop.tmp.dir}/dfs/data\</value></b></br>                                                    
       存放 Block 的路径:                                                                     
-     <b># cd /usr/local/hadoop/tmp/dfs/data/current </b></br>                                        
+     <b># cd /usr/local/hadoop/tmp/dfs/data/current </b></br>
      <b># ls  ( 可以看到 Block 块 )</b></br> 
      <b># ll  ( 会有 .meta 文件(校验数据，与数据文件成对) )</b></br> 
      <b># hadoop fs -rmr hdfs://hadoop0:9000/*  </b> (*表示通配) 删除所有的数据；再开启一个终端，用于上传(之前的那个终端用于显示)，上传占用实际文件大小空间，不足 64MB 只会占用一个块；文件超过 64MB ，会分块，几块加起来大小与原始文件一样</br>
