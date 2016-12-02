@@ -31,10 +31,10 @@
  (文件目录树： 为了检索速度快，最好放在内存中，为了持久保存，则写入硬盘中;  元信息： 除了文件内容本身的，涉及文件的信息，比如大小，权限...  ls 列出的信息都是元数据信息;  归根结底在硬盘上，但运行时在内存 )</br>
   * hdfs-default.xml 源码文件，eclipse中打开，可以查看存放位置: </br>
  <b>\<name>hadoop.tmp.dir\</name></b></br>
- <b>\<value>/usr/local/hadoop/tmp\</value></b></br>
+ <b>\<value>/root/opt/hadoop-2.7.3/tmp\</value></b></br>
 
   * 在hadoop 系统中也可以查看，</br>
-    <b># cd /usr/local/hadoop/tmp </b></br>
+    <b># cd /root/opt/hadoop-2.7.3/tmp </b></br>
     <b># ls </b>( 可以看到 dfs mapred 目录)</br>
     <b># cd dfs </b></br>
     <b># ls </b>( 可以看到 data name namesecondary 目录)</br>
@@ -42,7 +42,7 @@
     <b># more in_use.lock </b>( 没有什么内容，这个文件表示 name 目录已经被 namenode 进程占用了，那么在此启动 namenode 的时候，进程会报错，无法进入)</br>
     <b># cd current  </b></br>
     <b># ls </b>( 这些是namenode存储数据的文件，如果多个进程同时编辑数据会有问题，所以只能允许一个 namenode 存在，所以 in_use.lock  存在，锁定，其他 namenode 进程无法进入)</br>
-![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/tmpdir.PNG)
+![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/tmpdir.PNG)</br>
     
     文件包括：</br>
    * fsimage：(核心文件) 元数据镜像文件。存储某一时段NameNode内存元数据信息(hdfs-site.xml 的 dfs.name.dir 属性)，为了保障安全行，会进行备份，hdfs-default.xml中 </br>
@@ -70,7 +70,7 @@
 	# 不同于普通文件系统的是，HDFS中，如果一个文件小于一个数据块的大小，并不占用整个数据块存储空间 </br>
 	# Replication，多副本，默认是三个 (数据安全；副本越多会占用磁盘空间，所以根据实际情况定；默认三个，在配置文件中配置；目录没有副本，只有文件才有副本 </br>
   * 设置副本：                                                                                                       
-       <b> # cd hadoop/conf </b></br>
+       <b> # cd hadoop-2.7.3/etc/hadoop </b></br>
        <b> # more hdfs-site.xml</b></br>                                                                    
       可以看到                                                                                                       
        <b> \<name>dfs.replication\</name></b> </br>
@@ -85,11 +85,11 @@
      <b>\<value>${hadoop.tmp.dir}/dfs/data\</value></b></br>    
      ![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/datanodedata.PNG)
       存放 Block 的路径:                                                                     
-     <b># cd /usr/local/hadoop/tmp/dfs/data/current </b></br>
+     <b># cd /root/opt/hadoop-2.7.3/tmp/dfs/data/current </b></br>
      <b># ls  ( 可以看到 Block 块 )</b></br> 
      <b># ll  ( 会有 .meta 文件(校验数据，与数据文件成对) )</b></br> 
-     <b># hadoop fs -rmr hdfs://hadoop0:9000/*  </b> (*表示通配) 删除所有的数据；再开启一个终端，用于上传(之前的那个终端用于显示)，上传占用实际文件大小空间，不足 64MB 只会占用一个块；文件超过 64MB ，会分块，几块加起来大小与原始文件一样</br>
-     <b># cd /usr/local </b></br>
+     <b># hadoop fs -rmr hdfs://jxy:9000/*  </b> (*表示通配) 删除所有的数据；再开启一个终端，用于上传(之前的那个终端用于显示)，上传占用实际文件大小空间，不足 64MB 只会占用一个块；文件超过 64MB ，会分块，几块加起来大小与原始文件一样</br>
+     <b># cd /root </b></br>
      <b># ll 可以看到一些文件 </b></br>
      <b># hadoop fs -put xxx(文件) /</b> (上传到根目录)，上传完了去另一个终端查看，可以看到块，大小与上传之前的大小一样，手工上传的数据：不同的服务器上传，麻烦； 而且 hadoop fs -ls / 查询不到，因为 NameNode 管理目录树，它不知道，hdfs是不认的 </br>
      ![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/block.PNG)
