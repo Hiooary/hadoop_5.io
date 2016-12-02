@@ -32,7 +32,7 @@
   * hdfs-default.xml 源码文件，eclipse中打开，可以查看存放位置: </br>
  <b>\<name>hadoop.tmp.dir\</name></b></br>
  <b>\<value>/usr/local/hadoop/tmp\</value></b></br>
-![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/2.PNG)
+
   * 在hadoop 系统中也可以查看，</br>
     <b># cd /usr/local/hadoop/tmp </b></br>
     <b># ls </b>( 可以看到 dfs mapred 目录)</br>
@@ -42,19 +42,19 @@
     <b># more in_use.lock </b>( 没有什么内容，这个文件表示 name 目录已经被 namenode 进程占用了，那么在此启动 namenode 的时候，进程会报错，无法进入)</br>
     <b># cd current  </b></br>
     <b># ls </b>( 这些是namenode存储数据的文件，如果多个进程同时编辑数据会有问题，所以只能允许一个 namenode 存在，所以 in_use.lock  存在，锁定，其他 namenode 进程无法进入)</br>
-    ![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/2.PNG)
+![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/tmpdir.PNG)
     
     文件包括：</br>
    * fsimage：(核心文件) 元数据镜像文件。存储某一时段NameNode内存元数据信息(hdfs-site.xml 的 dfs.name.dir 属性)，为了保障安全行，会进行备份，hdfs-default.xml中 </br>
-    <b>\<name>dfs.name.dir\</name></b></br>
-    <b>\<value>${hadoop.tmp.dir}/dfs/name\</value></b></br>
-    ![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/2.PNG)
+    <b>\<name>dfs.namenode.name.dir\</name></b></br>
+    <b>\<value>${hadoop.tmp.dir}/dfs/name \</value></b></br>
+    ![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/namenode.PNG)
     不可以直接在文件上修改，复制到 hdfs-site.xml 中，将 <b>\<value>${hadoop.tmp.dir}/dfs/name\</value></b> 改为用<b> "," </b>分割的目录列表(逗号为英文状态，且不加空格)，数据会同时存到多个目录下(最好是多台机器多个磁盘上的多个文件夹，越分散越好)</br>
     * edits：操作日志文件</br>
       存放位置：</br>
-      <b>\<name>dfs.name.edits.dir\</name></b></br>
-      <b>\<value>${dfs.name.dir}\</value>  </b></br>
-      ![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/2.PNG)
+      <b>\<name>dfs.namenode.edits.dir\</name></b></br>
+      <b>\<value>${dfs.namenode.name.dir}\</value>  </b></br>
+      ![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/edits.PNG)
       事务文件(表示原子性操作，比如存取钱，如果其中一个操作失败，那么账不平，所以要么全部成功，要么全部失败)，假设从本地上传 1G 的文件到 hdfs，耗时10s，上传过程中网络中断或者源数据被删导致上传失败，这时 hdfs 上的部分文件是不完整的，不应该显示给用户。那么怎么保证这种一致性? -> 先写入 edits，上传100M,上传200M,...,保存上传的事务过程，如果失败，则不会告诉 fsimage(通过 SecondaryNamenode 进程)。NameNode 要接管用户的操作请求，要求快速响应，数据放入内存才快，cpu也尽量满足用户需求，所以交给第三方进程去合并</br>
     * fstime：保存最近一次 checkpoint 的时间</br>
 		以上这些文件是保存在 linux 的文件系统中</br>
@@ -75,15 +75,15 @@
       可以看到                                                                                                       
        <b> \<name>dfs.replication\</name></b> </br>
        <b>\<value>1\</value></b> </br>
-![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/2.PNG)
+![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/replication.PNG)
       这里设置的个数为1，没写则默认为3，这里做实验，就一个DataNode，所以设置为1。三个副本一般存在三个机器上：分别存放在 就近放在最近机架上的电脑上(确定)，同一机架上的另一台电脑(随机)，另一机架的另一台电脑(随机))</br>
   * NameNode 主节点只有一个，作为存储数据的 DataNode 有很多个，hdfs 可以存储海量数据，实际上指的是 DataNode 节点的快速扩展。真实的数据存储在 DataNode 中，对于目录的结构信息，元数据信息存储在 NameNode 中 。</br>
   * Block 是 linux 文件系统划分的一个概念 (形同 windows 的簇的概念，太大容易造成浪费，太小会导致频繁的IO操作，慢)，真正的文件是流，单向的，一个字节一个字节的数，数到64MB，则划分一个Block，一个大文件就会按照 64MB 划分为很多的 Block，NameNode 把 Block 存放于不同的 DataNode 上</br>
       (例如：一个文件 65MB ,会产生 2 个 Block，分别为 64MB,1MB，一个文件 2M，会产生 1 个 Block，占 2M 磁盘空间，2 个2M 的文件，产生 2 个 Block，占 4M)</br>
   *  源码中：                                                                                                       
-     <b>\<name>dfs.data.dir\</name></b></br>
+     <b>\<name>dfs.datanode.data.dir\</name></b></br>
      <b>\<value>${hadoop.tmp.dir}/dfs/data\</value></b></br>    
-     ![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/2.PNG)
+     ![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/datanodedata.PNG)
       存放 Block 的路径:                                                                     
      <b># cd /usr/local/hadoop/tmp/dfs/data/current </b></br>
      <b># ls  ( 可以看到 Block 块 )</b></br> 
@@ -91,6 +91,6 @@
      <b># hadoop fs -rmr hdfs://hadoop0:9000/*  </b> (*表示通配) 删除所有的数据；再开启一个终端，用于上传(之前的那个终端用于显示)，上传占用实际文件大小空间，不足 64MB 只会占用一个块；文件超过 64MB ，会分块，几块加起来大小与原始文件一样</br>
      <b># cd /usr/local # ll 可以看到一些文件 </b></br>
      <b># hadoop fs -put xxx(文件) /</b> (上传到根目录)，上传完了去另一个终端查看，可以看到块，大小与上传之前的大小一样，手工上传的数据：不同的服务器上传，麻烦； 而且 hadoop fs -ls / 查询不到，因为 NameNode 管理目录树，它不知道，hdfs是不认的 </br>
-     ![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/2.PNG)
- * 根据实际情况，确定 Block 的大小，复制 <b>\<name>dfs.block.size\</name> \<value>67108864\</value></b> 到 hdfs-site.xml 文件中修改 大小 </br>
-    ![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/2.PNG)
+     ![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/block.PNG)
+ * 根据实际情况，确定 Block 的大小，复制 <b>\<name>dfs.blocksize\</name> \<value>134217728\</value></b> 到 hdfs-site.xml 文件中修改 大小 </br>
+    ![图片](https://github.com/Hiooary/hadoop_5.io/blob/master/images/blocksize.PNG)
